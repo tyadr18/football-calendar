@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚽ Football Calendar
 
-## Getting Started
+**主要サッカーリーグの試合日程・結果をカレンダー形式で確認できるWebアプリです。**
 
-First, run the development server:
+🔗 **デモ: https://football-calendar-six.vercel.app**
+
+---
+
+## 制作の背景
+
+初めてのWebアプリ制作をしたかったので、自分が好きなサッカーをテーマに選びました。
+「見たいリーグの日程をすぐ確認できる」というシンプルなニーズを起点に、
+スクレイピング・API連携・UI設計までを一人で実装しました。
+
+---
+
+## 機能
+
+- **8つのコンペティション**に対応（プレミアリーグ・チャンピオンズリーグ・J1リーグなど）
+- **月間カレンダー表示**で試合日程を一覧確認
+- **試合タイルをクリック**するとチームエンブレム・スコア・キックオフ時刻をモーダル表示
+- **ライブ更新**対応（試合中はリアルタイムスコア表示）
+- **日本語 / English 切り替え**
+- TBA（対戦相手未定）試合は安全にグレーアウト表示
+
+---
+
+## 対応コンペティション
+
+| フラグ | リーグ名 | API |
+|--------|----------|-----|
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Premier League | football-data.org |
+| ⭐ | UEFA Champions League | football-data.org |
+| 🇪🇸 | La Liga | football-data.org |
+| 🇩🇪 | Bundesliga | football-data.org |
+| 🇮🇹 | Serie A | football-data.org |
+| 🇫🇷 | Ligue 1 | football-data.org |
+| 🇯🇵 | J1リーグ | api-football.com |
+| 🌍 | FIFA World Cup | football-data.org |
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|----------|------|
+| フレームワーク | Next.js 14 (App Router) |
+| 言語 | TypeScript |
+| スタイリング | Tailwind CSS |
+| データソース | football-data.org API / api-football.com |
+| デプロイ | Vercel |
+
+### 設計のポイント
+
+- **APIキーをサーバーサイドで隠蔽** — Next.js の Route Handler 経由でのみ外部APIを呼び出し、クライアントにキーが漏れない構成
+- **2つのAPIを統一インターフェースで管理** — football-data.org と api-football.com のレスポンス差異をアダプタ層で吸収
+- **5分キャッシュ** — `next: { revalidate: 300 }` でレートリミット内に収める設計
+
+---
+
+## ローカルで動かす
+
+```bash
+git clone https://github.com/tyadr18/football-calendar.git
+cd football-calendar
+npm install
+```
+
+`.env.local` を作成してAPIキーを設定：
+
+```env
+FOOTBALL_DATA_API_KEY=your_key   # https://www.football-data.org/
+API_FOOTBALL_KEY=your_key        # https://dashboard.api-football.com/
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`http://localhost:3000` をブラウザで開いてください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 依頼・お問い合わせ
 
-## Learn More
+このアプリと同様の「**API連携・データ表示系Webアプリ**」の開発を受け付けています。
 
-To learn more about Next.js, take a look at the following resources:
+- 試合日程・スポーツデータ系アプリ
+- 外部API連携を含むダッシュボード・管理画面
+- Next.js / TypeScript を使ったWebアプリ全般
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Coconala / CrowdWorks / Lancers** にてご依頼いただけます。
+お気軽にご相談ください。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ライセンス
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
