@@ -8,17 +8,16 @@ import {
   isSameDay,
 } from "date-fns";
 import { Match } from "@/types/football";
+import { Locale } from "./i18n";
 
-// Returns flat array of Date objects for calendar grid (Mon–Sun weeks)
 export function getCalendarDays(year: number, month: number): Date[] {
   const firstDay = startOfMonth(new Date(year, month - 1, 1));
   const lastDay = endOfMonth(firstDay);
-  const start = startOfWeek(firstDay, { weekStartsOn: 1 }); // Monday
+  const start = startOfWeek(firstDay, { weekStartsOn: 1 });
   const end = endOfWeek(lastDay, { weekStartsOn: 1 });
   return eachDayOfInterval({ start, end });
 }
 
-// Groups matches by local date string "YYYY-MM-DD"
 export function groupMatchesByDate(matches: Match[]): Record<string, Match[]> {
   const map: Record<string, Match[]> = {};
   for (const match of matches) {
@@ -29,7 +28,6 @@ export function groupMatchesByDate(matches: Match[]): Record<string, Match[]> {
   return map;
 }
 
-// Format UTC date to local kickoff time "HH:mm"
 export function formatKickoff(utcDate: string): string {
   return new Intl.DateTimeFormat(undefined, {
     hour: "2-digit",
@@ -37,9 +35,8 @@ export function formatKickoff(utcDate: string): string {
   }).format(new Date(utcDate));
 }
 
-// Format month title "April 2026"
-export function formatMonthTitle(year: number, month: number): string {
-  return new Intl.DateTimeFormat(undefined, {
+export function formatMonthTitle(year: number, month: number, locale: Locale = "en"): string {
+  return new Intl.DateTimeFormat(locale === "ja" ? "ja-JP" : "en-US", {
     year: "numeric",
     month: "long",
   }).format(new Date(year, month - 1, 1));

@@ -1,16 +1,18 @@
 "use client";
 
 import { formatMonthTitle } from "@/lib/date-utils";
+import { Locale } from "@/lib/i18n";
 import { ChevronLeftIcon, ChevronRightIcon } from "./Icons";
 
 interface Props {
   year: number;
   month: number;
+  locale: Locale;
   onPrev: () => void;
   onNext: () => void;
 }
 
-export default function MonthNavigator({ year, month, onPrev, onNext }: Props) {
+export default function MonthNavigator({ year, month, locale, onPrev, onNext }: Props) {
   return (
     <div className="flex items-center gap-4">
       <button
@@ -21,7 +23,7 @@ export default function MonthNavigator({ year, month, onPrev, onNext }: Props) {
         <ChevronLeftIcon />
       </button>
       <h2 className="text-xl font-bold text-white min-w-[200px] text-center">
-        {formatMonthTitle(year, month)}
+        {formatMonthTitle(year, month, locale)}
       </h2>
       <button
         onClick={onNext}

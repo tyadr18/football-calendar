@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchMatches } from "@/lib/football-data";
+import { fetchMatchesApiFootball } from "@/lib/api-football";
+import { API_FOOTBALL_CODES } from "@/lib/constants";
+
 import { format } from "date-fns";
 
 export async function GET(req: NextRequest) {
@@ -12,7 +15,10 @@ export async function GET(req: NextRequest) {
   const dateTo = format(new Date(year, month, 0), "yyyy-MM-dd");
 
   try {
-    const matches = await fetchMatches(competition, dateFrom, dateTo);
+    const matches = API_FOOTBALL_CODES.has(competition)
+      ? await fetchMatchesApiFootball(competition, dateFrom, dateTo)
+      : await fetchMatches(competition, dateFrom, dateTo);
+
     return NextResponse.json({ matches });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "UNKNOWN";

@@ -35,26 +35,37 @@ function scoreOrTime(match: Match): string {
   return formatKickoff(match.utcDate);
 }
 
+function teamAbbr(team: Match["homeTeam"]): string {
+  if (!team?.name || team.name === "TBA") return "TBA";
+  return team.tla || team.shortName?.slice(0, 3) || team.name.slice(0, 3);
+}
+
 export default function MatchTile({ match, onClick }: Props) {
-  const home = match.homeTeam.tla || match.homeTeam.shortName?.slice(0, 3) || "?";
-  const away = match.awayTeam.tla || match.awayTeam.shortName?.slice(0, 3) || "?";
+  const home = teamAbbr(match.homeTeam);
+  const away = teamAbbr(match.awayTeam);
+  const isTBA = home === "TBA" || away === "TBA";
   const isLive = match.status === "IN_PLAY" || match.status === "PAUSED";
 
   return (
     <button
-      onClick={() => onClick(match)}
-      className={`w-full text-left px-1.5 py-0.5 rounded text-xs leading-tight transition-all duration-100 ${statusStyle(match.status)}`}
+      onClick={() => isTBA ? undefined : onClick(match)}
+      disabled={isTBA}
+      className={`w-full text-left px-1.5 py-0.5 rounded text-xs leading-tight transition-all duration-100 ${
+        isTBA ? "bg-gray-800/50 text-gray-600 cursor-default" : statusStyle(match.status)
+      }`}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="truncate font-medium">
-          {isLive && (
+          {isLive && !isTBA && (
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse" />
           )}
-          {home} - {away}
+          {isTBA ? "TBA vs TBA" : `${home} - ${away}`}
         </span>
-        <span className="shrink-0 font-mono text-[10px] opacity-80">
-          {scoreOrTime(match)}
-        </span>
+        {!isTBA && (
+          <span className="shrink-0 font-mono text-[10px] opacity-80">
+            {scoreOrTime(match)}
+          </span>
+        )}
       </div>
     </button>
   );
