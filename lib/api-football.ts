@@ -66,6 +66,7 @@ function toMatch(fixture: any, competitionName?: string): Match {
       },
     },
     ...(competitionName ? { competition: { name: competitionName } } : {}),
+    source: "af" as const,
   };
 }
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Match, MatchStatus } from "@/types/football";
 import { Locale, t } from "@/lib/i18n";
 import { formatKickoff, format } from "@/lib/date-utils";
 import { XIcon, CalendarPlusIcon } from "./Icons";
 import { NATIONAL_TEAM_COMPETITION_CODES, TLA_TO_FLAG, NAME_TO_FLAG } from "@/lib/national-flags";
+import SquadView from "./SquadView";
 
 interface Props {
   match: Match | null;
@@ -14,6 +15,12 @@ interface Props {
   competitionLabel?: string;
   competitionCode?: string;
   onClose: () => void;
+}
+
+interface SquadTeam {
+  id: number;
+  name: string;
+  source: string | undefined;
 }
 
 function toICSDate(date: Date): string {
@@ -97,13 +104,25 @@ function CrestImage({ src, name }: { src: string; name: string }) {
 }
 
 export default function MatchDetailModal({ match, locale, competitionLabel, competitionCode, onClose }: Props) {
+  const [squadTeam, setSquadTeam] = useState<SquadTeam | null>(null);
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (squadTeam) setSquadTeam(null);
+        else onClose();
+      }
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [onClose, squadTeam]);
+
+  // モーダルが変わったときにスカッドビューをリセット
+  useEffect(() => { setSquadTeam(null); }, [match]);
 
   if (!match) return null;
+
+  const isIntl = competitionCode === "INTL";
 
   const tr = t[locale];
   const isLive = match.status === "IN_PLAY" || match.status === "PAUSED";
@@ -124,6 +143,20 @@ export default function MatchDetailModal({ match, locale, competitionLabel, comp
         className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Squad view */}
+        {squadTeam && (
+          <SquadView
+            teamId={squadTeam.id}
+            teamName={squadTeam.name}
+            matchSource={squadTeam.source}
+            locale={locale}
+            onBack={() => setSquadTeam(null)}
+          />
+        )}
+
+        {/* Match detail view */}
+        {!squadTeam && (
+        <>
         {/* Header */}
         <div className="flex items-start justify-between mb-4 gap-2">
           <div className="flex flex-col gap-1.5">
@@ -149,6 +182,14 @@ export default function MatchDetailModal({ match, locale, competitionLabel, comp
           <div className="flex-1 flex flex-col items-center gap-2 text-center">
             <CrestImage src={match.homeTeam.crest} name={match.homeTeam.name} />
             <span className="text-sm font-semibold text-white leading-tight">{match.homeTeam.name}</span>
+            {isIntl && (
+              <button
+                onClick={() => setSquadTeam({ id: match.homeTeam.id, name: match.homeTeam.name, source: match.source })}
+                className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                {locale === "ja" ? "選手を見る" : "View Squad"}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col items-center gap-1 shrink-0">
@@ -174,6 +215,14 @@ export default function MatchDetailModal({ match, locale, competitionLabel, comp
           <div className="flex-1 flex flex-col items-center gap-2 text-center">
             <CrestImage src={match.awayTeam.crest} name={match.awayTeam.name} />
             <span className="text-sm font-semibold text-white leading-tight">{match.awayTeam.name}</span>
+            {isIntl && (
+              <button
+                onClick={() => setSquadTeam({ id: match.awayTeam.id, name: match.awayTeam.name, source: match.source })}
+                className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                {locale === "ja" ? "選手を見る" : "View Squad"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -202,6 +251,8 @@ export default function MatchDetailModal({ match, locale, competitionLabel, comp
               Apple Calendar
             </button>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

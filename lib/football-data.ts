@@ -21,6 +21,7 @@ export async function fetchMatches(
 
   const data = await res.json();
   const matches = (data.matches ?? []) as Match[];
-  if (!competitionName) return matches;
-  return matches.map((m) => ({ ...m, competition: { name: competitionName } }));
+  const withSource = matches.map((m) => ({ ...m, source: "fd" as const }));
+  if (!competitionName) return withSource;
+  return withSource.map((m) => ({ ...m, competition: { name: competitionName } }));
 }

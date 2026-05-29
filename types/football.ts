@@ -33,6 +33,15 @@ export interface Match {
   awayTeam: Team;
   score: Score;
   competition?: { name: string };
+  source?: "fd" | "af" | "espn";
+}
+
+export interface Player {
+  id: number;
+  name: string;
+  position: string;
+  shirtNumber: number | null;
+  currentTeam: { name: string; crest: string } | null;
 }
 
 export interface CompetitionOption {

@@ -63,6 +63,7 @@ function espnToMatch(event: any, competitionName: string): Match | null {
       halfTime: { home: null, away: null },
     },
     competition: { name: competitionName },
+    source: "espn" as const,
   };
 }
 
