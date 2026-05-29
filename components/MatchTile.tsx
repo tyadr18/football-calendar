@@ -54,15 +54,37 @@ export default function MatchTile({ match, onClick }: Props) {
         isTBA ? "bg-gray-800/50 text-gray-600 cursor-default" : statusStyle(match.status)
       }`}
     >
-      <div className="flex items-center justify-between gap-1">
-        <span className="truncate font-medium">
+      <div className="flex items-center gap-0.5">
+        {!isTBA && match.homeTeam.crest && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={match.homeTeam.crest}
+            alt=""
+            width={12}
+            height={12}
+            className="object-contain shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
+        <span className="truncate font-medium flex-1">
           {isLive && !isTBA && (
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse" />
           )}
           {isTBA ? "TBA vs TBA" : `${home} - ${away}`}
         </span>
+        {!isTBA && match.awayTeam.crest && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={match.awayTeam.crest}
+            alt=""
+            width={12}
+            height={12}
+            className="object-contain shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
         {!isTBA && (
-          <span className="shrink-0 font-mono text-[10px] opacity-80">
+          <span className="shrink-0 font-mono text-[10px] opacity-80 ml-0.5">
             {scoreOrTime(match)}
           </span>
         )}

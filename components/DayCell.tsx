@@ -3,20 +3,20 @@
 import { Match } from "@/types/football";
 import { Locale, t } from "@/lib/i18n";
 import MatchTile from "./MatchTile";
-import { isSameDay } from "@/lib/date-utils";
 
 interface Props {
   date: Date;
   isCurrentMonth: boolean;
+  isToday: boolean;
   matches: Match[];
   locale: Locale;
   onMatchClick: (match: Match) => void;
+  onMoreClick: (date: Date, matches: Match[]) => void;
 }
 
 const MAX_VISIBLE = 3;
 
-export default function DayCell({ date, isCurrentMonth, matches, locale, onMatchClick }: Props) {
-  const today = isSameDay(date, new Date());
+export default function DayCell({ date, isCurrentMonth, isToday, matches, locale, onMatchClick, onMoreClick }: Props) {
   const visible = matches.slice(0, MAX_VISIBLE);
   const overflow = matches.length - MAX_VISIBLE;
 
@@ -29,7 +29,7 @@ export default function DayCell({ date, isCurrentMonth, matches, locale, onMatch
       <div className="flex items-center justify-end mb-1">
         <span
           className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
-            today ? "bg-green-500 text-black"
+            isToday ? "bg-green-500 text-black"
               : isCurrentMonth ? "text-gray-300"
               : "text-gray-600"
           }`}
@@ -44,7 +44,7 @@ export default function DayCell({ date, isCurrentMonth, matches, locale, onMatch
         {overflow > 0 && (
           <button
             className="text-[10px] text-gray-500 hover:text-gray-300 text-left pl-1.5 transition-colors"
-            onClick={() => onMatchClick(matches[MAX_VISIBLE])}
+            onClick={() => onMoreClick(date, matches)}
           >
             {t[locale].more(overflow)}
           </button>

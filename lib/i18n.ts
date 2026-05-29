@@ -28,6 +28,7 @@ export const t = {
       SUSPENDED: "Suspended",
     },
     matchday: (n: number) => `Matchday ${n}`,
+    addToCalendar: "Add to Calendar",
   },
   ja: {
     title: "フットボール カレンダー",
@@ -56,5 +57,6 @@ export const t = {
       SUSPENDED: "中断",
     },
     matchday: (n: number) => `第${n}節`,
+    addToCalendar: "カレンダーに追加",
   },
 };

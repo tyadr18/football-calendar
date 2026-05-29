@@ -8,6 +8,8 @@ import CompetitionSelector from "./CompetitionSelector";
 import MonthNavigator from "./MonthNavigator";
 import CalendarGrid from "./CalendarGrid";
 import MatchDetailModal from "./MatchDetailModal";
+import DayMatchListModal from "./DayMatchListModal";
+import { COMPETITIONS } from "@/lib/constants";
 
 export default function CalendarPage() {
   const now = new Date();
@@ -17,6 +19,7 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [dayDetail, setDayDetail] = useState<{ date: Date; matches: Match[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +55,9 @@ export default function CalendarPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
 
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-8">
           <div>
-            <h1 className="text-3xl font-black text-white mb-1">⚽ {tr.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">⚽ {tr.title}</h1>
             <p className="text-gray-500 text-sm">{tr.subtitle}</p>
           </div>
           {/* Language toggle */}
@@ -75,11 +78,11 @@ export default function CalendarPage() {
 
         {/* Competition selector */}
         <div className="mb-6">
-          <CompetitionSelector value={competition} onChange={setCompetition} />
+          <CompetitionSelector value={competition} onChange={setCompetition} locale={locale} />
         </div>
 
         {/* Month navigation + status */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-4">
           <MonthNavigator year={year} month={month} locale={locale} onPrev={prevMonth} onNext={nextMonth} />
           <div className="flex items-center gap-3 text-xs text-gray-500">
             {loading && (
@@ -114,6 +117,7 @@ export default function CalendarPage() {
             matches={matches}
             locale={locale}
             onMatchClick={setSelectedMatch}
+            onMoreClick={(date, ms) => setDayDetail({ date, matches: ms })}
           />
         </div>
 
@@ -138,7 +142,24 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <MatchDetailModal match={selectedMatch} locale={locale} onClose={() => setSelectedMatch(null)} />
+      <DayMatchListModal
+        date={dayDetail?.date ?? null}
+        matches={dayDetail?.matches ?? []}
+        locale={locale}
+        onMatchClick={(m) => { setDayDetail(null); setSelectedMatch(m); }}
+        onClose={() => setDayDetail(null)}
+      />
+
+      <MatchDetailModal
+        match={selectedMatch}
+        locale={locale}
+        competitionLabel={(() => {
+          const c = COMPETITIONS.find((comp) => comp.code === competition);
+          return locale === "en" ? (c?.labelEn ?? c?.label) : c?.label;
+        })()}
+        competitionCode={competition}
+        onClose={() => setSelectedMatch(null)}
+      />
     </div>
   );
 }

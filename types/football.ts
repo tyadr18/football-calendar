@@ -32,10 +32,12 @@ export interface Match {
   homeTeam: Team;
   awayTeam: Team;
   score: Score;
+  competition?: { name: string };
 }
 
 export interface CompetitionOption {
   code: string;
   label: string;
+  labelEn?: string;
   flag: string;
 }

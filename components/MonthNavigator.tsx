@@ -22,7 +22,7 @@ export default function MonthNavigator({ year, month, locale, onPrev, onNext }: 
       >
         <ChevronLeftIcon />
       </button>
-      <h2 className="text-xl font-bold text-white min-w-[200px] text-center">
+      <h2 className="text-lg sm:text-xl font-bold text-white min-w-[120px] sm:min-w-[200px] text-center">
         {formatMonthTitle(year, month, locale)}
       </h2>
       <button

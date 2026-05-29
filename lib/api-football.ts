@@ -1,5 +1,5 @@
 import { Match, MatchStatus } from "@/types/football";
-import { API_FOOTBALL_LEAGUE_IDS } from "./constants";
+import { API_FOOTBALL_LEAGUE_IDS, INTL_LEAGUES } from "./constants";
 
 const BASE = "https://v3.football.api-sports.io";
 
@@ -23,7 +23,7 @@ function normalizeStatus(short: string): MatchStatus {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toMatch(fixture: any): Match {
+function toMatch(fixture: any, competitionName?: string): Match {
   const f = fixture.fixture;
   const home = fixture.teams.home;
   const away = fixture.teams.away;
@@ -65,6 +65,7 @@ function toMatch(fixture: any): Match {
         away: fixture.score?.halftime?.away ?? null,
       },
     },
+    ...(competitionName ? { competition: { name: competitionName } } : {}),
   };
 }
 
@@ -95,4 +96,41 @@ export async function fetchMatchesApiFootball(
   }
 
   return (data.response ?? []).map(toMatch);
+}
+
+async function fetchLeague(
+  leagueId: number,
+  competitionName: string,
+  dateFrom: string,
+  dateTo: string
+): Promise<Match[]> {
+  const season = new Date(dateFrom).getFullYear();
+  const url = `${BASE}/fixtures?league=${leagueId}&season=${season}&from=${dateFrom}&to=${dateTo}`;
+  const res = await fetch(url, {
+    headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY! },
+    next: { revalidate: 300 },
+  });
+  if (res.status === 429) throw new Error("RATE_LIMITED");
+  if (!res.ok) return [];
+  const data = await res.json();
+  if (data.errors?.token || data.errors?.rateLimit) throw new Error("RATE_LIMITED");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data.response ?? []).map((f: any) => toMatch(f, competitionName));
+}
+
+export async function fetchInternationalMatches(
+  dateFrom: string,
+  dateTo: string
+): Promise<Match[]> {
+  const results = await Promise.allSettled(
+    INTL_LEAGUES.map(({ id, name }) => fetchLeague(id, name, dateFrom, dateTo))
+  );
+
+  const matches: Match[] = [];
+  for (const result of results) {
+    if (result.status === "fulfilled") matches.push(...result.value);
+    else if (result.reason?.message === "RATE_LIMITED") throw new Error("RATE_LIMITED");
+  }
+
+  return matches.sort((a, b) => a.utcDate.localeCompare(b.utcDate));
 }
