@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
       ]);
       const matches: Match[] = [];
       if (espnResult.status === "fulfilled") matches.push(...espnResult.value);
-      if (j100Result.status === "fulfilled") matches.push(...j100Result.value);
+      // ESPN は百年構想リーグも収録しているので、jleague.jp は ESPN が空のときだけ使う（重複防止）
+      if (matches.length === 0 && j100Result.status === "fulfilled") {
+        matches.push(...j100Result.value);
+      }
       matches.sort((a, b) => a.utcDate.localeCompare(b.utcDate));
       return NextResponse.json({ matches });
     }

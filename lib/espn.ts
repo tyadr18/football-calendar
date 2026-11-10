@@ -2,8 +2,25 @@ import { Match, MatchStatus } from "@/types/football";
 
 const BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer";
 
-function toESPNDate(yyyy_mm_dd: string): string {
-  return yyyy_mm_dd.replace(/-/g, "");
+/**
+ * ESPN の scoreboard は期間指定 (dates=YYYYMMDD-YYYYMMDD) を受け付けなくなり 400 を返す。
+ * 月指定 (dates=YYYYMM) は使えるので、期間にかかる月をすべて取得してから日付で絞り込む。
+ */
+function monthsBetween(dateFrom: string, dateTo: string): string[] {
+  const [fy, fm] = dateFrom.split("-").map(Number);
+  const [ty, tm] = dateTo.split("-").map(Number);
+  const months: string[] = [];
+  let y = fy;
+  let m = fm;
+  while (y < ty || (y === ty && m <= tm)) {
+    months.push(`${y}${String(m).padStart(2, "0")}`);
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+  return months;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,24 +84,37 @@ function espnToMatch(event: any, competitionName: string): Match | null {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchESPNMonth(slug: string, yyyymm: string): Promise<any[]> {
+  const url = `${BASE}/${slug}/scoreboard?dates=${yyyymm}&limit=300`;
+  const res = await fetch(url, { next: { revalidate: 300 } });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.events ?? [];
+}
+
 export async function fetchESPNLeague(
   slug: string,
   competitionName: string,
   dateFrom: string,
   dateTo: string
 ): Promise<Match[]> {
-  const from = toESPNDate(dateFrom);
-  const to = toESPNDate(dateTo);
-  const url = `${BASE}/${slug}/scoreboard?dates=${from}-${to}&limit=200`;
+  const months = monthsBetween(dateFrom, dateTo);
+  const results = await Promise.allSettled(months.map((m) => fetchESPNMonth(slug, m)));
 
-  const res = await fetch(url, { next: { revalidate: 300 } });
-  if (!res.ok) return [];
-
-  const data = await res.json();
   const matches: Match[] = [];
-  for (const event of data.events ?? []) {
-    const match = espnToMatch(event, competitionName);
-    if (match) matches.push(match);
+  const seen = new Set<string>();
+  for (const r of results) {
+    if (r.status !== "fulfilled") continue;
+    for (const event of r.value) {
+      if (seen.has(String(event.id))) continue;
+      const match = espnToMatch(event, competitionName);
+      if (!match) continue;
+      const day = match.utcDate.slice(0, 10);
+      if (day < dateFrom || day > dateTo) continue;
+      seen.add(String(event.id));
+      matches.push(match);
+    }
   }
   return matches;
 }
